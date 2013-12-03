@@ -21,10 +21,10 @@ trap error_handler ERR TERM INT
 
 office_n_txt(){
     src_file=${1}
-    temp=${2}/temp
-    mkdir -p "${temp}"
+    dst_file=${2}${1##$CURRENT_SRC}.html
+    temp=${2}_temp
     ${LO} --headless --convert-to pdf --outdir "${temp}" "${src_file}"
-    ${PDF} --dest-dir "${2}" ${temp}/*.pdf
+    ${PDF} ${temp}/*.pdf ${dst_file}
     rm -rf "${temp}"
 }
 
@@ -95,7 +95,7 @@ application(){
             ;;
         *xml*)
             echo "Got an XML"
-            text ${src_file} ${2}
+            office_n_txt ${src_file} ${2}
             ;;
         x-dosexec)
             echo "Win executable"
