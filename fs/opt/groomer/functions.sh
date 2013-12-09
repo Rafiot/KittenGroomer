@@ -24,7 +24,7 @@ office_n_txt(){
     dst_file=${2}${1##$CURRENT_SRC}.html
     temp=${2}/temp
     ${LO} --headless --convert-to pdf --outdir "${temp}" "${src_file}"
-    ${PDF} ${temp}/*.pdf ${dst_file}
+    ${PDF} --dest-dir=/ ${temp}/*.pdf ${dst_file}
     rm -rf "${temp}"
 }
 
