@@ -22,7 +22,7 @@ trap error_handler ERR TERM INT
 office_n_txt(){
     src_file=${1}
     dst_file=${2}${1##$CURRENT_SRC}.html
-    temp=${2}_temp
+    temp=${2}/temp
     ${LO} --headless --convert-to pdf --outdir "${temp}" "${src_file}"
     ${PDF} ${temp}/*.pdf ${dst_file}
     rm -rf "${temp}"
