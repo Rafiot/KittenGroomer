@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-#set -x
+set -x
 
 source ./constraint.sh
 if ! [ "${ID}" -ge "1000" ]; then
@@ -16,13 +16,13 @@ clean(){
     ${SYNC}
 
     # Cleanup source
-    ${SUDO} ${UMOUNT} ${SRC} || true
+    ${SUDO} ${UMOUNT} ${SRC}
     rm -rf ${SRC}
 
     # Cleanup destination
     rm -rf ${TEMP}
     rm -rf ${ZIPTEMP}
-    ${SUDO} ${UMOUNT} ${DST} || true
+    ${SUDO} ${UMOUNT} ${DST}
     rm -rf ${DST}
 
     exit
@@ -37,7 +37,7 @@ if [ ! -b ${DEV_SRC} ]; then
 fi
 # Find the partition names on the source device
 DEV_PARTITIONS=`ls "${DEV_SRC}"* | grep "${DEV_SRC}[1-9][0-6]*" || true`
-if [ -z ${DEV_PARTITIONS} ]; then
+if [ -z "${DEV_PARTITIONS}" ]; then
     echo "${DEV_SRC} does not have any partitions."
     exit
 fi
@@ -86,7 +86,7 @@ for partition in ${DEV_PARTITIONS}
 do
     # Processing a partition
     echo "Processing partition: ${partition}"
-    if ${MOUNT}|grep ${SRC}; then
+    if [ `${MOUNT} | grep -c ${SRC}` -ne 0 ]; then
         ${SUDO} ${UMOUNT} ${SRC}
     fi
 
@@ -106,7 +106,7 @@ do
         LOGFILE="${LOGS}/processing.txt"
 
         echo "==== Starting processing of ${SRC} to ${target_dir}. ====" >> ${LOGFILE}
-        main ${target_dir}
+        main ${target_dir} || true
         echo "==== Done with ${SRC} to ${target_dir}. ====" >> ${LOGFILE}
 
         ls -lR "${target_dir}"

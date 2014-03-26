@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#set -e
-set -x
 
 source ./constraint.sh
 source ./constraint_conv.sh
@@ -14,13 +12,21 @@ LOGFILE="${LOGS}/processing.txt"
 # Something went wrong.
 error_handler(){
     echo "FAILED." >> ${LOGFILE}
-    echo "Something went wrong during the duplication." >> ${LOGFILE}
-    echo "Please open a bug on https://www.github.com/Rafiot/KittenGroomer" >> ${LOGFILE}
-
-    exit
+    echo -e "\tSomething went wrong during the duplication of the last file." >> ${LOGFILE}
+    echo -e "\tPlease open a bug on https://www.github.com/Rafiot/KittenGroomer" >> ${LOGFILE}
+    continue
 }
 
-trap error_handler INT
+trap error_handler ERR TERM INT
+
+office_n_txt(){
+    src_file=${1}
+    dst_file=${2}${1##$CURRENT_SRC}.html
+    temp=${2}/temp
+    ${LO} --headless --convert-to pdf --outdir "${temp}" "${src_file}"
+    ${PDF} --dest-dir=/ ${temp}/*.pdf ${dst_file}
+    rm -rf "${temp}"
+}
 
 copy(){
     src_file=${1}
@@ -32,8 +38,7 @@ copy(){
 # Plain text
 text(){
     echo Text file ${1}
-    # XXX: append .txt ?
-    copy ${1} ${2}${1##$CURRENT_SRC}
+    office_n_txt ${1} ${2}
 }
 
 # Multimedia
@@ -86,15 +91,11 @@ application(){
             # https://blogs.msdn.com/b/vsofficedeveloper/archive/2008/05/08/office-2007-open-xml-mime-types.aspx
             # http://plan-b-for-openoffice.org/glossary/term/mime-type
             echo "MS Office or ODF document"
-            temp=${2}/temp
-            mkdir "${temp}"
-            ${LO} --headless --convert-to pdf --outdir "${temp}" "${src_file}"
-            ${PDF} --dest-dir "${2}" ${temp}/*.pdf
-            rm -rf "${temp}"
+            office_n_txt ${src_file} ${2}
             ;;
         *xml*)
             echo "Got an XML"
-            text ${src_file} ${2}
+            office_n_txt ${src_file} ${2}
             ;;
         x-dosexec)
             echo "Win executable"
@@ -144,6 +145,8 @@ main(){
         echo "Please specify the destination directory."
         exit
     fi
+    set -e
+    set -x
 
     if [ -z ${2} ]; then
         CURRENT_SRC=${SRC}
@@ -178,31 +181,31 @@ main(){
         echo -n "Processing ${file} (${mime})... " >> ${LOGFILE}
         case "${main_mime}" in
             "text")
-                text ${file} ${dest}
+                text ${file} ${dest} || error_handler
                 ;;
             "audio")
-                audio ${file} ${dest}
+                audio ${file} ${dest} || error_handler
                 ;;
             "image")
-                image ${file} ${dest}
+                image ${file} ${dest} || error_handler
                 ;;
             "video")
-                video ${file} ${dest}
+                video ${file} ${dest} || error_handler
                 ;;
             "application")
-                application ${file} ${dest} ${details}
+                application ${file} ${dest} ${details} || error_handler
                 ;;
             "example")
-                example ${file} ${dest}
+                example ${file} ${dest} || error_handler
                 ;;
             "message")
-                message ${file} ${dest}
+                message ${file} ${dest} || error_handler
                 ;;
             "model")
-                model ${file} ${dest}
+                model ${file} ${dest} || error_handler
                 ;;
             "multipart")
-                multipart ${file} ${dest}
+                multipart ${file} ${dest} || error_handler
                 ;;
             *)
                 echo "This should never happen... :]"
@@ -212,5 +215,7 @@ main(){
         echo "done." >> ${LOGFILE}
     done
     IFS=$SAVEIFS
+    return 0
 }
+
 

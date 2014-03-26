@@ -1,12 +1,11 @@
 #!/bin/bash
 
-apt-get -b source -t experimental poppler
+# Force the User
+su root
 
-# Note: libpoppler-private-dev is not listed in the dependencies of pdf2htmlEX
-# but still needed because of poppler-config.h
-dpkg -i libpoppler-dev* libpoppler28* libpoppler-private-dev*
+wget https://github.com/coolwanglu/pdf2htmlEX/archive/v0.11.zip
+unzip v0.11.zip
 
-cd pdf2htmlEX/
-git pull
+cd pdf2htmlEX-0.11/
 
 dpkg-buildpackage -uc -b

@@ -21,8 +21,10 @@ if [ -e /dev/sda ]; then
   if [ -e /dev/sdb ]; then
     cd /opt/groomer
     /usr/sbin/led &
+    # avoid possibe misuse
+    /sbin/ifconfig eth0 down
     ./init.sh
-    /sbin/shutdown -h now
+    /sbin/shutdown -P -h now
   fi
 fi
 

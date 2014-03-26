@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -x
+
 CHROOT_PATH='/mnt/arm_rPi'
 
 if [ "$(id -u)" != "0" ]; then
@@ -13,15 +16,22 @@ fi
 # prepare fs archive
 tar -cvpzf backup.tar.gz -C fs/ .
 tar -xzf backup.tar.gz -C ${CHROOT_PATH}/
+chown root:root ${CHROOT_PATH}/etc/sudoers
 cp deb/led ${CHROOT_PATH}/usr/sbin/led
+cp -rf midi ${CHROOT_PATH}/opt/
 
-losetup -o $((122880 * 512)) /dev/loop0 NEW_FINAL_2013-02-09-wheezy-raspbian.img
-resize2fs /dev/loop0
-losetup -d /dev/loop0
+# needed just once, make sure the size of the partition is correct
+#losetup -o $((122880 * 512)) /dev/loop0 FINAL_2013-09-10-wheezy-raspbian.img
+#e2fsck -f /dev/loop0
+#resize2fs /dev/loop0
+#losetup -d /dev/loop0
 
-#sudo dd bs=4M if=NEW_FINAL_2013-02-09-wheezy-raspbian.img of=/dev/sdd
+#sudo dd bs=4M if=FINAL_2013-09-10-wheezy-raspbian.img of=/dev/sdd
 
 # /!\ always try to mount the root partition on the SD, it is usually broken.
 # if it is, use fdisk to remove the second partition and recreate it (you will
 # not lose the data).
 # See resize_img.md
+
+
+# It is also a good idea to run raspi-config once and enable the console login (allow debugging)
